@@ -1,0 +1,8 @@
+﻿[img=https://raw.githubusercontent.com/Danimineiro/RW_dropOnFloorAndForbid/master/Workshop/feature.png][/img]
+This mod allows you to set your bills to drop items on the floor, automatically forbidding them.
+
+[img=https://raw.githubusercontent.com/Danimineiro/RW_dropOnFloorAndForbid/master/Workshop/links.png][/img]
+[url=https://github.com/Danimineiro/RW_dropOnFloorAndForbid]Github[/url]
+[url=https://ko-fi.com/Dani]Ko-Fi[/url]
+
+[url=https://discord.gg/7befJWr9xS][img]https://i.imgur.com/cfoFEMA.png[/img][/url]
