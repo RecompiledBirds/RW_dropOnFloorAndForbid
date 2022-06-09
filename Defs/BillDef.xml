@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+	<BillStoreModeDef>
+		<defName>forbiddenDrop</defName>
+		<label>drop on floor and forbid</label>
+		<listOrder>25</listOrder>
+	</BillStoreModeDef>
+</Defs>

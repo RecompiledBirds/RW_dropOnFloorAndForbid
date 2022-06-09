@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+	<name>[DN] Drop On Floor and Forbid</name>
+	<author>Danimineiro</author>
+	<loadAfter>
+		<li>Ludeon.RimWorld</li>
+		<li>brrainz.harmony</li>
+	</loadAfter>
+	<supportedVersions>
+		<li>1.3</li>
+	</supportedVersions>
+	<packageId>dani.dropOnFloorAndForbid</packageId>
+	<description>
+		This mod allows you to set your bills to drop items on the floor, automatically forbidding them
+	</description>
+</ModMetaData>
