@@ -81,7 +81,7 @@ namespace dropOnFloorAndForbid.Source
                     return;
                 }
 
-                PlaceEverythingForStockpileModes(actor, products);
+                TryPlaceThings(actor, products, startAtThingNumber: 1);
 
                 IntVec3 position = IntVec3.Invalid;
                 DoStockpileModes(actor, curJob, products, ref position);
@@ -113,23 +113,15 @@ namespace dropOnFloorAndForbid.Source
 			return false;
         }
 
-        private static void PlaceEverythingForStockpileModes(Pawn actor, List<Thing> products)
-        {
-            if (products.Count > 1)
-            {
-                TryPlaceThings(actor, products);
-            }
-        }
-
         private static void DoStockpileModes(Pawn actor, Job curJob, List<Thing> products, ref IntVec3 position)
         {
             if (curJob.bill.GetStoreMode() == BillStoreModeDefOf.BestStockpile)
             {
-                StoreUtility.TryFindBestBetterStoreCellFor(products[0], actor, actor.Map, StoragePriority.Unstored, actor.Faction, out position, true);
+                StoreUtility.TryFindBestBetterStoreCellFor(products[0], actor, actor.Map, StoragePriority.Unstored, actor.Faction, out position);
             }
             else if (curJob.bill.GetStoreMode() == BillStoreModeDefOf.SpecificStockpile)
             {
-                StoreUtility.TryFindBestBetterStoreCellForIn(products[0], actor, actor.Map, StoragePriority.Unstored, actor.Faction, curJob.bill.GetStoreZone().slotGroup, out position, true);
+                StoreUtility.TryFindBestBetterStoreCellForIn(products[0], actor, actor.Map, StoragePriority.Unstored, actor.Faction, curJob.bill.GetStoreZone().slotGroup, out position);
             }
             else
             {
@@ -157,9 +149,11 @@ namespace dropOnFloorAndForbid.Source
             }
         }
 
-        private static void TryPlaceThings(Pawn actor, List<Thing> products, Action<Thing, int> placedAction = null)
+        private static void TryPlaceThings(Pawn actor, List<Thing> products, Action<Thing, int> placedAction = null, int startAtThingNumber = 0)
         {
-            for (int i = 0; i < products.Count; i++)
+            if (startAtThingNumber > products.Count) return;
+
+            for (int i = startAtThingNumber; i < products.Count; i++)
             {
                 if (!GenPlace.TryPlaceThing(products[i], actor.Position, actor.Map, ThingPlaceMode.Near, placedAction))
                 {
