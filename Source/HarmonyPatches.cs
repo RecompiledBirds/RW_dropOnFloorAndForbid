@@ -49,7 +49,9 @@ namespace dropOnFloorAndForbid.Source
 
                 List<Thing> ingredients = (List<Thing>)CalculateIngredients.Invoke(null, new object[] { curJob, actor });
                 Thing dominantIngredient = (Thing)CalculateDominantIngredient.Invoke(null, new object[] { curJob, ingredients });
-                List<Thing> products = GenRecipe.MakeRecipeProducts(curJob.RecipeDef, actor, ingredients, dominantIngredient, jobDriver_DoBill.BillGiver, curJob.bill.precept).ToList();
+
+                ThingStyleDef style = SetStyle(curJob);
+                List<Thing> products = GetProducts(actor, curJob, jobDriver_DoBill, ingredients, dominantIngredient, style);
 
                 EarnSkillFromJob(actor, curJob, jobDriver_DoBill);
                 ConsumeIngredients.Invoke(null, new object[] { ingredients, curJob.RecipeDef, actor.Map });
@@ -113,6 +115,28 @@ namespace dropOnFloorAndForbid.Source
 			return false;
         }
 
+        private static List<Thing> GetProducts(Pawn actor, Job curJob, JobDriver_DoBill jobDriver_DoBill, List<Thing> ingredients, Thing dominantIngredient, ThingStyleDef style)
+        {
+            if (curJob.bill is Bill_Mech bill) return GenRecipe.FinalizeGestatedPawns(bill, actor, style).ToList();
+            return GenRecipe.MakeRecipeProducts(curJob.RecipeDef, actor, ingredients, dominantIngredient, jobDriver_DoBill.BillGiver, curJob.bill.precept, style, curJob.bill.graphicIndexOverride).ToList();
+        }
+
+        private static ThingStyleDef SetStyle(Job curJob)
+        {
+            if (!ModsConfig.IdeologyActive || curJob.bill.recipe.products == null || curJob.bill.recipe.products.Count != 1) return null;
+            ThingStyleDef thingStyleDef;
+            if (!curJob.bill.globalStyle)
+            {
+                thingStyleDef = curJob.bill.style;
+            }
+            else
+            {
+                StyleCategoryPair styleCategoryPair = Faction.OfPlayer.ideos.PrimaryIdeo.style.StyleForThingDef(curJob.bill.recipe.ProducedThingDef, null);
+                thingStyleDef = (styleCategoryPair?.styleDef);
+            }
+            return thingStyleDef;
+        }
+
         private static void DoStockpileModes(Pawn actor, Job curJob, List<Thing> products, ref IntVec3 position)
         {
             if (curJob.bill.GetStoreMode() == BillStoreModeDefOf.BestStockpile)
@@ -171,7 +195,7 @@ namespace dropOnFloorAndForbid.Source
 
         private static void EarnSkillFromJob(Pawn actor, Job curJob, JobDriver_DoBill jobDriver_DoBill)
         {
-            if (curJob.RecipeDef.workSkill == null || curJob.RecipeDef.UsesUnfinishedThing) return;
+            if (curJob.RecipeDef.workSkill == null || curJob.RecipeDef.UsesUnfinishedThing || actor.skills == null) return;
 
             float xp = jobDriver_DoBill.ticksSpentDoingRecipeWork * 0.1f * curJob.RecipeDef.workSkillLearnFactor;
             actor.skills.GetSkill(curJob.RecipeDef.workSkill).Learn(xp, false);

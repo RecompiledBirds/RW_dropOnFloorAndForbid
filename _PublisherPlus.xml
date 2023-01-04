@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Configuration>
+  <Excluded>
+    <exclude>.git</exclude>
+    <exclude>.vs</exclude>
+    <exclude>dropOnFloorAndForbid.csproj</exclude>
+    <exclude>dropOnFloorAndForbid.sln</exclude>
+    <exclude>obj</exclude>
+    <exclude>Source</exclude>
+    <exclude>Workshop</exclude>
+  </Excluded>
+</Configuration>
