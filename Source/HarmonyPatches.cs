@@ -145,7 +145,7 @@ namespace dropOnFloorAndForbid.Source
             }
             else if (curJob.bill.GetStoreMode() == BillStoreModeDefOf.SpecificStockpile)
             {
-                StoreUtility.TryFindBestBetterStoreCellForIn(products[0], actor, actor.Map, StoragePriority.Unstored, actor.Faction, curJob.bill.GetStoreZone().slotGroup, out position);
+                StoreUtility.TryFindBestBetterStoreCellForIn(products[0], actor, actor.Map, StoragePriority.Unstored, actor.Faction, curJob.bill.GetSlotGroup(), out position);
             }
             else
             {
@@ -163,7 +163,7 @@ namespace dropOnFloorAndForbid.Source
 
         private static void MakeTale(Pawn actor, Job curJob, List<Thing> products)
         {
-            if (curJob.bill.recipe.WorkAmountTotal((curJob.GetTarget(TargetIndex.B).Thing is UnfinishedThing unfinishedThing) ? unfinishedThing.Stuff : null) >= 10000f && products.Count > 0)
+            if (curJob.bill.recipe.WorkAmountTotal(curJob.GetTarget(TargetIndex.B).Thing) >= 10000f && products.Count > 0)
             {
                 TaleRecorder.RecordTale(TaleDefOf.CompletedLongCraftingProject, new object[]
                 {
@@ -183,11 +183,11 @@ namespace dropOnFloorAndForbid.Source
                 {
                     Log.Error(string.Concat(new object[]
                     {
-                                actor,
-                                " could not drop recipe product ",
-                                products[i],
-                                " near ",
-                                actor.Position
+                        actor,
+                        " could not drop recipe product ",
+                        products[i],
+                        " near ",
+                        actor.Position
                     }));
                 }
             }
