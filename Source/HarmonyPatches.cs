@@ -115,22 +115,26 @@ namespace dropOnFloorAndForbid.Source
                     actor.jobs.EndCurrentJob(JobCondition.Succeeded, true, true);
                     return;
                 }
-                int num3 = actor.carryTracker.MaxStackSpaceEver(products[0].def);
-                if (num3 < products[0].stackCount)
+                int maxStackSpace = actor.carryTracker.MaxStackSpaceEver(products[0].def);
+                if (maxStackSpace < products[0].stackCount)
                 {
-                    int count = products[0].stackCount - num3;
-                    Thing thing3 = products[0].SplitOff(count);
+                    int extraProduct = products[0].stackCount - maxStackSpace;
+                    Thing thing3 = products[0].SplitOff(extraProduct);
                     if (!GenPlace.TryPlaceThing(thing3, actor.Position, actor.Map, ThingPlaceMode.Near, null, null, null, 1))
                     {
                         Log.Error(string.Format("{0} could not drop recipe extra product that pawn couldn't carry, {1} near {2}", actor, thing3, actor.Position));
                     }
                 }
-                if (num3 == 0)
+                if (maxStackSpace == 0)
                 {
                     actor.jobs.EndCurrentJob(JobCondition.Succeeded, true, true);
                     return;
                 }
-                actor.carryTracker.TryStartCarry(products[0]);
+
+                if (!actor.carryTracker.TryStartCarry(products[0]))
+                {
+                    Log.Error("Couldn't carry items!");
+                }
                 Pawn_JobTracker jobs = actor.jobs;
                 Job newJob = HaulAIUtility.HaulToCellStorageJob(actor, products[0], invalid, false);
                 JobCondition lastJobEndCondition = JobCondition.Succeeded;
