@@ -40,7 +40,7 @@ namespace dropOnFloorAndForbid.Source
         static bool ToilPatch(ref Toil __result)
         {
 			Toil toil = new Toil();
-
+            
 			toil.initAction = () =>
             {
                 Pawn actor = toil.actor;
@@ -76,39 +76,70 @@ namespace dropOnFloorAndForbid.Source
                 }
 
                 //Custom new special forbidden drop
-                if (curJob.bill.GetStoreMode() == DefDatabase<BillStoreModeDef>.GetNamed("forbiddenDrop"))
+                if (curJob.bill.GetStoreMode() == BillDefOf.forbiddenDrop)
                 {
                     TryPlaceThings(actor, products, (thing, integer) => thing.SetForbidden(true));
                     actor.jobs.EndCurrentJob(JobCondition.Succeeded, true, true);
                     return;
                 }
 
-                TryPlaceThings(actor, products, startAtThingNumber: 1);
-
-                IntVec3 position = IntVec3.Invalid;
-                DoStockpileModes(actor, curJob, products, ref position);
-
-                if (position.IsValid)
+                if (products.Count > 1)
                 {
-                    actor.carryTracker.TryStartCarry(products[0]);
-                    curJob.targetB = position;
-                    curJob.targetA = products[0];
-                    curJob.count = 99999;
+                    for (int k = 1; k < products.Count; k++)
+                    {
+                        if (!GenPlace.TryPlaceThing(products[k], actor.Position, actor.Map, ThingPlaceMode.Near, null, null, null, 1))
+                        {
+                            Log.Error(string.Format("{0} could not drop recipe product {1} near {2}", actor, products[k], actor.Position));
+                        }
+                    }
+                }
+                IntVec3 invalid = IntVec3.Invalid;
+                if (curJob.bill.GetStoreMode() == BillStoreModeDefOf.BestStockpile)
+                {
+                    StoreUtility.TryFindBestBetterStoreCellFor(products[0], actor, actor.Map, StoragePriority.Unstored, actor.Faction, out invalid, true);
+                }
+                else if (curJob.bill.GetStoreMode() == BillStoreModeDefOf.SpecificStockpile)
+                {
+                    StoreUtility.TryFindBestBetterStoreCellForIn(products[0], actor, actor.Map, StoragePriority.Unstored, actor.Faction, curJob.bill.GetSlotGroup(), out invalid, true);
+                }
+                else
+                {
+                    Log.ErrorOnce("Unknown store mode", 9158246);
+                }
+                if (!invalid.IsValid)
+                {
+                    if (!GenPlace.TryPlaceThing(products[0], actor.Position, actor.Map, ThingPlaceMode.Near, null, null, null, 1))
+                    {
+                        Log.Error(string.Format("Bill doer could not drop product {0} near {1}", products[0], actor.Position));
+                    }
+                    actor.jobs.EndCurrentJob(JobCondition.Succeeded, true, true);
                     return;
                 }
-
-                if (!GenPlace.TryPlaceThing(products[0], actor.Position, actor.Map, ThingPlaceMode.Near))
+                int num3 = actor.carryTracker.MaxStackSpaceEver(products[0].def);
+                if (num3 < products[0].stackCount)
                 {
-                    Log.Error(string.Concat(new object[]
+                    int count = products[0].stackCount - num3;
+                    Thing thing3 = products[0].SplitOff(count);
+                    if (!GenPlace.TryPlaceThing(thing3, actor.Position, actor.Map, ThingPlaceMode.Near, null, null, null, 1))
                     {
-                        "Bill doer could not drop product ",
-                        products[0],
-                        " near ",
-                        actor.Position
-                    }));
+                        Log.Error(string.Format("{0} could not drop recipe extra product that pawn couldn't carry, {1} near {2}", actor, thing3, actor.Position));
+                    }
                 }
-
-                actor.jobs.EndCurrentJob(JobCondition.Succeeded, true, true);
+                if (num3 == 0)
+                {
+                    actor.jobs.EndCurrentJob(JobCondition.Succeeded, true, true);
+                    return;
+                }
+                actor.carryTracker.TryStartCarry(products[0]);
+                Pawn_JobTracker jobs = actor.jobs;
+                Job newJob = HaulAIUtility.HaulToCellStorageJob(actor, products[0], invalid, false);
+                JobCondition lastJobEndCondition = JobCondition.Succeeded;
+                ThinkNode jobGiver = null;
+                bool resumeCurJobAfterwards = false;
+                bool cancelBusyStances = true;
+                ThinkTreeDef thinkTree = null;
+                bool? keepCarryingThingOverride = new bool?(true);
+                jobs.StartJob(newJob, lastJobEndCondition, jobGiver, resumeCurJobAfterwards, cancelBusyStances, thinkTree, null, false, false, keepCarryingThingOverride, false, true, false);
             };
 
 			__result = toil;
